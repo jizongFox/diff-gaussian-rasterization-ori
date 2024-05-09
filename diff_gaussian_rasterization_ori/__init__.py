@@ -10,12 +10,11 @@
 #
 from __future__ import annotations
 
-from typing import NamedTuple
-
 import torch
 import torch.nn as nn
 from jaxtyping import Float
 from torch import Tensor
+from typing import NamedTuple
 
 from . import _C
 
@@ -141,10 +140,10 @@ class _RasterizeGaussians(torch.autograd.Function):
             binningBuffer,
             imgBuffer,
         )
-        return color, radii
+        return color, radii, num_rendered, geomBuffer, binningBuffer, imgBuffer
 
     @staticmethod
-    def backward(ctx, grad_out_color, _):
+    def backward(ctx, grad_out_color, *_):
 
         # Restore necessary values from context
         num_rendered = ctx.num_rendered
