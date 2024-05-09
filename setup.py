@@ -9,18 +9,20 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-from setuptools import setup
-from torch.utils.cpp_extension import CUDAExtension, BuildExtension
 import os
 
+from setuptools import setup
+from torch.utils.cpp_extension import CUDAExtension, BuildExtension
+
 os.path.dirname(os.path.abspath(__file__))
+package_name = "diff_gaussian_rasterization_ori"
 
 setup(
-    name="diff_gaussian_rasterization",
-    packages=["diff_gaussian_rasterization"],
+    name=package_name,
+    packages=[package_name],
     ext_modules=[
         CUDAExtension(
-            name="diff_gaussian_rasterization._C",
+            name=f"{package_name}._C",
             sources=[
                 "cuda_rasterizer/rasterizer_impl.cu",
                 "cuda_rasterizer/forward.cu",
