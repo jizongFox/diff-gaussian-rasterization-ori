@@ -16,7 +16,7 @@ from jaxtyping import Float
 from torch import Tensor
 from typing import NamedTuple
 
-from . import _C
+from . import _C  # noqa
 
 
 def cpu_deep_copy_tuple(input_tuple):
@@ -108,6 +108,7 @@ class _RasterizeGaussians(torch.autograd.Function):
                     geomBuffer,
                     binningBuffer,
                     imgBuffer,
+                    alphas,
                 ) = _C.rasterize_gaussians(*args)
             except Exception as ex:
                 torch.save(cpu_args, "snapshot_fw.dump")
@@ -123,8 +124,12 @@ class _RasterizeGaussians(torch.autograd.Function):
                 geomBuffer,
                 binningBuffer,
                 imgBuffer,
+                alphas,
             ) = _C.rasterize_gaussians(*args)
 
+        accum_alphas = 1 - alphas.view(
+            raster_settings.image_height, raster_settings.image_width
+        )
         # Keep relevant tensors for backward
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
@@ -139,8 +144,17 @@ class _RasterizeGaussians(torch.autograd.Function):
             geomBuffer,
             binningBuffer,
             imgBuffer,
+            alphas,
         )
-        return color, radii, num_rendered, geomBuffer, binningBuffer, imgBuffer
+        return (
+            color,
+            radii,
+            num_rendered,
+            geomBuffer,
+            binningBuffer,
+            imgBuffer,
+            accum_alphas,
+        )
 
     @staticmethod
     def backward(ctx, grad_out_color, *_):
@@ -159,6 +173,7 @@ class _RasterizeGaussians(torch.autograd.Function):
             geomBuffer,
             binningBuffer,
             imgBuffer,
+            alphas,
         ) = ctx.saved_tensors
 
         # Restructure args as C++ method expects them

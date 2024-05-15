@@ -3,3 +3,4 @@ build/
 dist/
 *.so
 __pycache__
+cmake-build-debug
